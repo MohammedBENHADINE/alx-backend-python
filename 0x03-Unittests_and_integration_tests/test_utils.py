@@ -31,6 +31,7 @@ class TestAccessNestedMap(unittest.TestCase):
         """doc doc doc"""
         with self.assertRaises(KeyError):
             access_nested_map(nested_map, path)
+
 class TestGetJson(unittest.TestCase):
     """doc doc doc"""
 
@@ -48,3 +49,32 @@ class TestGetJson(unittest.TestCase):
         mock_get.return_value.json.return_value = test_payload
         self.assertEqual(get_json(test_url), test_payload)
         mock_get.assert_called_once_with(test_url)
+
+class TestMemoize(TestCase):
+    """Test cases for the memoize decorator."""
+    def test_memoize(self):
+        """Test the memoize decorator on a property by mocking a_method."""
+        class TestClass:
+            """Dummy class for testing."""
+            def a_method(self) -> int:
+                """Mocked method for testing purposes."""
+                return 42
+
+            @memoize
+            def a_property(self) -> int:
+                """Property under test using the memoize decorator."""
+                return self.a_method()
+
+        with patch.object(TestClass, 'a_method') as mocked_method:
+            mocked_method.return_value = 42
+            dummy = TestClass()
+            res1 = dummy.a_property
+            res2 = dummy.a_property
+
+        dummy = TestClass()
+        res1 = dummy.a_property
+        res2 = dummy.a_property
+
+        mocked_method.assert_called_once()
+        self.assertEqual(res1, 42)
+        self.assertEqual(res2, 42)
