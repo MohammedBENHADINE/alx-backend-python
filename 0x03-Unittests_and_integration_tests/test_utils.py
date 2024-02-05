@@ -1,54 +1,62 @@
 #!/usr/bin/env python3
-""" doc doc doc """
-import unittest
+"""test cases for the utils module"""
+
+from typing import Mapping, Sequence, Dict, Any
+from utils import access_nested_map, get_json, memoize
+from unittest import TestCase
+import requests
 from parameterized import parameterized
-from utils import access_nested_map
-from typing import Any, Tuple, Dict
 from unittest.mock import patch, Mock
-from utils import get_json
 
 
-class TestAccessNestedMap(unittest.TestCase):
-    """doc doc doc"""
+class TestAccessNestedMap(TestCase):
+    """Test cases for the access_nested_map function."""
 
-    @parameterized.expand(
-        [
-            ({"a": 1}, ("a",), 1),
-            ({"a": {"b": 2}}, ("a",), {"b": 2}),
-            ({"a": {"b": 2}}, ("a", "b"), 2),
-        ]
-    )
+    @parameterized.expand([
+        ({"a": 1}, ("a",), 1),
+        ({"a": {"b": 2}}, ("a",), {"b": 2}),
+        ({"a": {"b": 2}}, ("a", "b"), 2),
+    ])
     def test_access_nested_map(
-        self, nested_map: Dict[str, Any], path: Tuple[str], expected: Any
-    ) -> None:
-        """doc doc doc"""
-        self.assertEqual(access_nested_map(nested_map, path), expected)
+            self,
+            n_map: Mapping,
+            path: Sequence,
+            expected: Any):
+        """Test successful access_nested_map."""
+        self.assertEqual(access_nested_map(n_map, path), expected)
 
-    @parameterized.expand([({}, ("a",)), ({"a": 1}, ("a", "b"))])
+    @parameterized.expand([
+        ({}, ("a",)),
+        ({"a": 1}, ("a", "b")),
+    ])
     def test_access_nested_map_exception(
-        self, nested_map: Dict[str, Any], path: Tuple[str]
-    ) -> None:
-        """doc doc doc"""
+            self,
+            n_map: Mapping,
+            path: Sequence):
+        """Test expected exceptions during access_nested_map."""
         with self.assertRaises(KeyError):
-            access_nested_map(nested_map, path)
+            access_nested_map(n_map, path)
 
-class TestGetJson(unittest.TestCase):
-    """doc doc doc"""
 
-    @parameterized.expand(
-        [
-            ("http://example.com", {"payload": True}),
-            ("http://holberton.io", {"payload": False}),
-        ]
-    )
-    @patch("requests.get")
+class TestGetJson(TestCase):
+    """Test cases for the get_json function."""
+
+    @parameterized.expand([
+        ("http://example.com", {"payload": True}),
+        ("http://holberton.io", {"payload": False}),
+        ])
     def test_get_json(
-        self, test_url: str, test_payload: Dict[str, Any], mock_get: Mock
-    ) -> None:
-        """doc doc doc"""
-        mock_get.return_value.json.return_value = test_payload
-        self.assertEqual(get_json(test_url), test_payload)
-        mock_get.assert_called_once_with(test_url)
+            self,
+            url: str,
+            test_payload: Dict):
+        """Test the get_json function by mocking the requests.get method."""
+        mocked_response = Mock()
+        mocked_response.json.return_value = test_payload
+        with patch('requests.get', return_value=mocked_response) as mocked_get:
+            output = get_json(url)
+        mocked_get.assert_called_once_with(url)
+        self.assertEqual(output, test_payload)
+
 
 class TestMemoize(TestCase):
     """Test cases for the memoize decorator."""
